@@ -1,0 +1,1114 @@
+Program 1
+
+Implement the Data Link Layer Framing Method – Bit Stuffing
+
+Aim: Write a C program to implement the data link layer framing method using bit stuffing.
+
+Algorithm:
+1.	Start the process.
+2.	Accept the number of bits (n) from the user.
+3.	Accept the input bits (0s and 1s) into an array a.
+4.	Initialize the following variables:
+o	i = 0 (to traverse the input array)
+o	j = 0 (to build the stuffed output array)
+o	c = 0 (to count consecutive 1’s)
+5.	Traverse each bit of the input array a:
+a. Copy the current bit to the output array b.
+b. If the current bit is 1, increment c.
+c. If c == 5 (five consecutive 1’s encountered):
+o	Insert a 0 immediately after them in the output array.
+o	Reset c = 0.
+d. If the current bit is 0, reset c = 0.
+6.	After processing all bits, print the stuffed output array b.
+7.	Stop the process.
+
+Program:
+
+#include <stdio.h> 
+
+int main() {
+    int a[100], b[300];
+    int n, i, j = 0, c = 0;
+
+    printf("Enter the number of bits: ");
+    scanf("%d", &n);
+
+    printf("Enter the Bits (0s or 1s):\n");
+    for(i = 0; i < n; i++) {
+        scanf("%d", &a[i]);
+    }
+
+    for(i = 0; i < n; i++) {
+        b[j++] = a[i];
+
+        if(a[i] == 1) {
+            c++;
+            if(c == 5) {
+                b[j++] = 0;
+                c = 0;
+            }
+        } else {
+            c = 0;
+        }
+    }
+
+    printf("Stuffed Output: ");
+    for(i = 0; i < j; i++) {
+        printf("%d", b[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
+
+Output:
+Enter the number of bits: 18
+Enter the Bits (0s or 1s):
+1 0 1 0 1 0 1 1 1 1 1 0 1 1 1 1 0 1
+Stuffed Output: 1010101111100111101
+
+
+Program 2
+
+Implement the Data Link Layer Framing Method – Byte Stuffing
+
+Aim:Write a C program to implement the data link layer framing method using byte stuffing.
+
+Algorithm:
+1.	Start the process.
+2.	Accept the input string a in CAPITAL letters from the user.
+3.	Validate that all letters in the input string are uppercase:
+o	If any lowercase letter is found, display an error message and terminate the program.
+4.	Initialize variables:
+o	i = 0 (to traverse the input string)
+o	j = 0 (to construct the stuffed string b)
+5.	Add a starting flag character 'F' to the beginning of the stuffed string b.
+6.	Traverse each character of the input string a:
+a. If the current character is 'E' or 'F', insert an additional 'E' (escape character) before it.
+b. Copy the current character to the stuffed string b.
+7.	Add an ending flag character 'F' at the end of the stuffed string.
+8.	Terminate the string b with a null character '\0'.
+9.	Display the final stuffed frame.
+10.	Stop the process.
+
+Program:
+
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+int main() {
+    char a[100], b[200];
+    int i = 0, j = 0;
+
+    printf("Enter the string in CAPITAL letters: ");
+    scanf("%s", a);
+
+    for(i = 0; a[i] != '\0'; i++) {
+        if (!isupper(a[i])) {
+            printf("Error - All the letters must be in CAPITAL\n");
+            return 1;
+        }
+    }
+
+    b[j++] = 'F';  // Starting flag
+
+    for(i = 0; a[i] != '\0'; i++) {
+        if(a[i] == 'E' || a[i] == 'F') {
+            b[j++] = 'E';  // Escape character
+        }
+        b[j++] = a[i];
+    }
+
+    b[j++] = 'F';  // Ending flag
+    b[j] = '\0';
+
+    printf("Stuffed frame: %s\n", b);
+
+    return 0;
+}
+
+Output:
+Enter the string in CAPITAL letters: FRAME
+Stuffed frame: FEFRAFMEF
+
+
+Program 3
+
+Implement the Data Link Layer Framing Method – CRC Generation (Transmitter Side)
+
+Aim: Write a C program to implement CRC generation at the transmitter side.
+
+Algorithm:
+1.	Start the process.
+2.	Accept the input data frame (in binary).
+3.	Accept the generator polynomial (in binary).
+4.	Calculate the length of the data (datalen) and generator polynomial (keylen).
+5.	Append (keylen - 1) zeros to the end of the data frame. This forms the dividend.
+6.	Copy the first keylen bits of the dividend into a temporary array remainder.
+7.	Perform binary division using the following steps:
+a. If the first bit of the remainder is 1, perform XOR with the generator polynomial.
+b. Otherwise, perform XOR with a string of zeros (i.e., shift left).
+c. Shift the remainder left by one bit and append the next bit of the dividend.
+8.	Continue the process until all bits of the dividend have been processed.
+9.	The final remainder obtained after the division is the CRC bits.
+10.	Append the CRC bits to the original data to form the transmitted frame.
+11.	Display the data, CRC, and the encoded (transmitted) frame.
+12.	Stop the process.
+
+Program:
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char data[100], key[50];
+    int datalen, keylen, i, j;
+
+    printf("Enter the data: ");
+    scanf("%s", data);
+    printf("Enter the generator polynomial: ");
+    scanf("%s", key);
+
+    datalen = strlen(data);
+    keylen = strlen(key);
+
+    // Append (keylen-1) zeros to data
+    char dividend[200];
+    strcpy(dividend, data);
+    for (i = 0; i < keylen - 1; i++)
+        strcat(dividend, "0");
+
+    // Copy dividend into remainder
+    char remainder[100];
+    strncpy(remainder, dividend, keylen);
+    remainder[keylen] = '\0';
+
+    // Division process
+    for (i = keylen; i <= strlen(dividend); i++) {
+        if (remainder[0] == '1') {
+            for (j = 1; j < keylen; j++)
+                remainder[j - 1] = (remainder[j] == key[j] ? '0' : '1');
+        } else {
+            for (j = 1; j < keylen; j++)
+                remainder[j - 1] = remainder[j];
+        }
+        remainder[keylen - 1] = (i < strlen(dividend)) ? dividend[i] : '\0';
+    }
+    remainder[keylen - 1] = '\0';
+
+    printf("Data: %s\n", data);
+    printf("CRC: %s\n", remainder);
+    printf("Encoded Data: %s%s\n", data, remainder);
+
+    return 0;
+}
+
+Output:
+Enter the data: 11010011101100
+Enter the generator polynomial: 1011
+Data: 11010011101100
+CRC: 100
+Encoded Data: 11010011101100100
+
+
+Program 4
+
+Implement the Data Link Layer Framing Method – CRC Checking (Receiver Side)
+
+Aim: Write a C program to implement CRC checking at the receiver side.
+
+Algorithm:
+1.	Start the process.
+2.	Accept the generator polynomial (in binary).
+3.	Accept the received CRC frame (data + CRC bits).
+4.	Let:
+o	m = length of the generator polynomial
+o	n = length of the received frame – (m – 1)
+5.	Perform binary division (XOR) between the received frame and the generator polynomial:
+a. For each bit in the frame up to n:
+o	If the current bit is 1, perform XOR of the next m bits with the generator polynomial.
+o	If the current bit is 0, skip to the next bit.
+6.	After completing the division, check the remainder bits (last m – 1 bits of the frame).
+7.	If all remainder bits are 0, then no error exists in the message.
+8.	If any remainder bit is 1, then an error is detected in the message.
+9.	Display the result accordingly.
+10.	Stop the process.
+
+Program:
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char poly[50], frame[200];
+    int i, j, m, n;
+
+    printf("Enter generator polynomial (binary): ");
+    scanf("%s", poly);
+    printf("Enter received CRC frame (binary): ");
+    scanf("%s", frame);
+
+    m = strlen(poly);
+    n = strlen(frame) - m + 1;
+
+    // Division
+    for (i = 0; i < n; i++) {
+        if (frame[i] == '1') {
+            for (j = 0; j < m; j++) {
+                frame[i + j] = (frame[i + j] == poly[j]) ? '0' : '1';
+            }
+        }
+    }
+
+    // Check remainder
+    for (i = n; i < n + m - 1; i++) {
+        if (frame[i] == '1') {
+            printf("\nError detected in message.\n");
+            return 0;
+        }
+    }
+
+    printf("\nMessage is correct (no error).\n");
+    return 0;
+}
+
+Output:
+Enter generator polynomial (binary): 1011
+Enter received CRC frame (binary): 11010011101100100
+
+Message is correct (no error).
+
+
+Program 5
+
+Implement Dijkstra’s Algorithm for Shortest Path Routing
+
+Aim: Write a C program to implement Dijkstra’s algorithm to find the shortest paths from a given source vertex to all other vertices in a weighted graph.
+
+Algorithm:
+1.	Start the process.
+2.	Input the number of vertices n.
+3.	Input the adjacency matrix for the graph:
+o	Enter -1 where there is no edge between vertices.
+o	Replace -1 with a large constant value (INF) to represent infinity.
+o	Set the diagonal elements to 0 (distance from a vertex to itself).
+4.	Input the source vertex (v) from which shortest paths are to be calculated.
+5.	Initialize arrays:
+o	dist[i] = cost from source to vertex i (initially from adjacency matrix).
+o	s[i] = 0 (indicating vertex i is not yet visited).
+o	path[i] = source vertex v.
+6.	Set dist[v] = 0 and mark s[v] = 1 (source is visited).
+7.	Repeat for all vertices (n–1 times):
+a. Find the unvisited vertex u with the minimum dist[u] value.
+b. Mark vertex u as visited.
+c. For each adjacent unvisited vertex i, update the distance if:
+8.	dist[i] > dist[u] + cost[u][i]
+Then set dist[i] = dist[u] + cost[u][i] and path[i] = u.
+9.	After all vertices are processed, display the shortest distance and path from the source to each vertex.
+10.	Stop the process.
+
+Program:
+
+#include <stdio.h>
+#define MAX 10
+#define INF 30000
+
+int main() {
+    int u, v, num, i, j;
+    int s[MAX], min, cost[MAX][MAX], dist[MAX], path[MAX], n;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix (-1 for no edge):\n");
+    for(i = 1; i <= n; i++) {
+        for(j = 1; j <= n; j++) {
+            scanf("%d", &cost[i][j]);
+            if(i == j)
+                cost[i][j] = 0;
+            else if(cost[i][j] == -1)
+                cost[i][j] = INF;
+        }
+    }
+
+    printf("Enter source vertex (1 to %d): ", n);
+    scanf("%d", &v);
+
+    // Initialize distance, path, and visited arrays
+    for(i = 1; i <= n; i++) {
+        s[i] = 0;             // Not visited
+        path[i] = v;          // Initially all paths go through source
+        dist[i] = cost[v][i]; // Distance from source
+    }
+
+    dist[v] = 0;
+    s[v] = 1;
+
+    for(num = 2; num <= n; num++) {
+        min = INF;
+        u = -1;
+
+        // Find the unvisited vertex with the smallest distance
+        for(i = 1; i <= n; i++) {
+            if(!s[i] && dist[i] < min) {
+                min = dist[i];
+                u = i;
+            }
+        }
+
+        if(u == -1) break; // All reachable nodes are visited
+        s[u] = 1;
+
+        // Update distances of adjacent vertices
+        for(i = 1; i <= n; i++) {
+            if(!s[i] && dist[i] > dist[u] + cost[u][i]) {
+                dist[i] = dist[u] + cost[u][i];
+                path[i] = u;
+            }
+        }
+    }
+
+    // Output path matrix
+    printf("\nShortest paths from source %d:\n", v);
+    printf("Node\tDistance\tPath\n");
+    for(i = 1; i <= n; i++) {
+        printf("%d\t%d\t\t", i, dist[i]);
+        j = i;
+        printf("%d", j);
+        while(path[j] != v) {
+            j = path[j];
+            printf(" <- %d", j);
+        }
+        printf(" <- %d\n", v);
+    }
+
+    return 0;
+}
+
+Enter number of vertices: 5
+Enter adjacency matrix (-1 for no edge):
+0 10 -1 30 100
+-1 0 50 -1 -1
+-1 -1 0 -1 10
+-1 -1 20 0 60
+-1 -1 -1 -1 0
+Enter source vertex (1 to 5): 1
+
+Shortest paths from source 1:
+Node    Distance    Path
+1       0           1 <- 1
+2       10          2 <- 1
+3       50          3 <- 4 <- 1
+4       30          4 <- 1
+5       60          5 <- 3 <- 4 <- 1
+
+
+Program 6
+
+Implement Sliding Window Protocol for Flow Control
+
+Aim: Write a C program to simulate the Sliding Window Protocol for flow control.
+
+Algorithm:
+1.	Start the process.
+2.	Accept the total number of frames (tf) from the user.
+3.	Accept the window size (ws).
+4.	Initialize:
+o	sent = 0 (to track the number of frames transmitted).
+5.	Repeat the following steps until all frames are sent and acknowledged:
+a. Transmit frames equal to the window size or until all frames are sent.
+b. After transmission, wait for the acknowledgment number (ack) from the receiver.
+c. If ack < sent, it indicates some frames were not acknowledged — retransmit from frame number ack.
+d. If ack == sent, it means all frames were successfully acknowledged.
+6.	Continue the process until all frames are acknowledged.
+7.	Stop the process.
+
+Program:
+#include<stdio.h>
+
+int main() {
+    int ws, tf, sent = 0, ack, i;
+
+    printf("Enter total no of frames: ");
+    scanf("%d", &tf);
+
+    printf("Enter window size: ");
+    scanf("%d", &ws);
+
+    while (sent < tf) {
+        for (i = 0; i < ws && sent < tf; i++) {
+            printf("Frame %d transmitted\n", sent);
+            sent++;
+        }
+
+        printf("Enter last ack received: ");
+        scanf("%d", &ack);
+
+        if (ack < sent) {
+            sent = ack; // Retransmit from unacknowledged frame
+        }
+
+        if (ack == tf) {
+            printf("All frames successfully transmitted and acknowledged.\n");
+            break;
+        }
+    }
+
+    return 0;
+}
+
+Output:
+Enter total no of frames: 10
+Enter window size: 4
+Frame 0 transmitted
+Frame 1 transmitted
+Frame 2 transmitted
+Frame 3 transmitted
+Enter last ack received: 2
+Frame 2 transmitted
+Frame 3 transmitted
+Frame 4 transmitted
+Frame 5 transmitted
+Enter last ack received: 6
+Frame 6 transmitted
+Frame 7 transmitted
+Frame 8 transmitted
+Frame 9 transmitted
+Enter last ack received: 10
+All frames successfully transmitted and acknowledged.
+
+
+Program 7
+
+Implement Caesar Cipher Encryption
+
+Aim: Write a C program to implement Caesar Cipher encryption.
+
+Algorithm:
+1.	Start the process.
+2.	Accept the message (plaintext) from the user.
+3.	Accept the key value (ranging from 1–25).
+4.	For each character in the message:
+a. If it is an uppercase letter (A–Z):
+o	Convert it using the formula:
+o	Encrypted_char = ((char - 'A' + key) % 26) + 'A'
+b. If it is a lowercase letter (a–z):
+o	Convert it using the formula:
+o	Encrypted_char = ((char - 'a' + key) % 26) + 'a'
+c. Non-alphabetic characters are left unchanged.
+5.	Display the encrypted message (ciphertext).
+6.	Stop the process.
+Program:
+#include <stdio.h>
+
+int main() {
+    char msg[200];
+    int key, i;
+
+    printf("Enter message: ");
+    fgets(msg, sizeof(msg), stdin);
+
+    printf("Enter key (1-25): ");
+    scanf("%d", &key);
+
+    for (i = 0; msg[i] != '\0'; i++) {
+        char ch = msg[i];
+        if (ch >= 'A' && ch <= 'Z')
+            msg[i] = ((ch - 'A' + key) % 26) + 'A';
+        else if (ch >= 'a' && ch <= 'z')
+            msg[i] = ((ch - 'a' + key) % 26) + 'a';
+    }
+
+    printf("Encrypted message: %s\n", msg);
+    return 0;
+}
+
+Output:
+Enter message: NETWORKLAB
+Enter key (1-25): 3
+Encrypted message: QHWWRUNODE
+
+
+Program 8
+
+Implement Caesar Cipher Decryption
+
+Aim: Write a C program to implement Caesar Cipher decryption.
+
+Algorithm:
+1.	Start the process.
+2.	Accept the encrypted message (ciphertext) from the user.
+3.	Accept the key value used for encryption.
+4.	For each character in the message:
+a. If it is an uppercase letter (A–Z):
+o	Convert it using the formula:
+o	Decrypted_char = ((ch - 'A' - key + 26) % 26) + 'A'
+b. If it is a lowercase letter (a–z):
+o	Convert it using the formula:
+o	Decrypted_char = ((ch - 'a' - key + 26) % 26) + 'a'
+c. Non-alphabetic characters remain unchanged.
+5.	Display the decrypted message (original plaintext).
+6.	Stop the process.
+
+Program:
+#include <stdio.h>
+
+int main() {
+    char msg[200];
+    int key, i;
+
+    printf("Enter the message: ");
+    fgets(msg, sizeof(msg), stdin);
+
+    printf("Enter the key: ");
+    scanf("%d", &key);
+
+    for (i = 0; msg[i] != '\0'; i++) {
+        char ch = msg[i];
+        if (ch >= 'A' && ch <= 'Z') {
+            msg[i] = (ch - 'A' - key + 26) % 26 + 'A';
+        } else if (ch >= 'a' && ch <= 'z') {
+            msg[i] = (ch - 'a' - key + 26) % 26 + 'a';
+        }
+    }
+
+    printf("Decrypted message: %s\n", msg);
+    return 0;
+}
+
+Output:
+Enter the message: QHWWRUNODE
+Enter the key: 3
+Decrypted message: NETWORKLAB
+
+
+Program 9
+
+Implement Bubble Sort Algorithm
+
+Aim: Write a C program to sort an array of integers using the Bubble Sort algorithm.
+
+Algorithm:
+1.	Start the process.
+2.	Read the total number of elements (n) from the user.
+3.	Input the array elements.
+4.	Repeat the following steps for n – 1 passes:
+a. Compare each pair of adjacent elements.
+b. If the first element is greater than the second, swap them.
+5.	After each pass, the largest unsorted element is placed at its correct position.
+6.	Display the sorted array.
+7.	Stop the process.
+
+Program:
+#include <stdio.h>
+
+void bubblesort(int a[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (a[j] > a[j + 1]) {
+                int temp = a[j];
+                a[j] = a[j + 1];
+                a[j + 1] = temp;
+            }
+        }
+    }
+}
+
+int main() {
+    int n;
+    printf("Enter the number of elements: ");
+    scanf("%d", &n);
+
+    int arr[n];
+    printf("Enter the elements: ");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &arr[i]);
+    }
+
+    printf("Unsorted Array: ");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+
+    bubblesort(arr, n);
+
+    printf("Sorted Array: ");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
+
+Output:
+Enter the number of elements: 5
+Enter the elements: 5 2 8 1 4
+Unsorted Array: 5 2 8 1 4
+Sorted Array: 1 2 4 5 8
+
+
+
+
+
+
+
+
+
+Program 10
+
+Implement Merge Sort Algorithm
+
+Aim: Write a C program to sort an array of integers using the Merge Sort algorithm.
+
+Algorithm:
+1.	Start the process.
+2.	Read the total number of elements (n) from the user.
+3.	Input the array elements.
+4.	Divide the array into two halves recursively until each subarray contains only one element.
+5.	Merge the subarrays in a sorted manner:
+a. Compare elements of left and right subarrays.
+b. Copy the smaller element into the main array.
+c. Repeat until all elements are merged.
+6.	Display the sorted array.
+7.	Stop the process.
+
+Program:
+#include <stdio.h>
+
+void merge(int arr[], int l, int m, int r) {
+    int n1 = m - l + 1;
+    int n2 = r - m;
+    int L[n1], R[n2];
+
+    for (int i = 0; i < n1; i++) L[i] = arr[l + i];
+    for (int i = 0; i < n2; i++) R[i] = arr[m + 1 + i];
+
+    int i = 0, j = 0, k = l;
+    while (i < n1 && j < n2) {
+        arr[k++] = (L[i] <= R[j] ? L[i++] : R[j++]);
+    }
+    while (i < n1) arr[k++] = L[i++];
+    while (j < n2) arr[k++] = R[j++];
+}
+
+void mergesort(int arr[], int l, int r) {
+    if (l < r) {
+        int m = (l + r) / 2;
+        mergesort(arr, l, m);
+        mergesort(arr, m + 1, r);
+        merge(arr, l, m, r);
+    }
+}
+
+int main() {
+    int n;
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
+
+    int arr[n];
+    printf("Enter elements: ");
+    for (int i = 0; i < n; i++) scanf("%d", &arr[i]);
+
+    printf("Unsorted Array: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\n");
+
+    mergesort(arr, 0, n - 1);
+
+    printf("Sorted Array: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\n");
+
+    return 0;
+}
+
+Output:
+Enter number of elements: 6
+Enter elements: 12 5 7 1 9 3
+Unsorted Array: 12 5 7 1 9 3
+Sorted Array: 1 3 5 7 9 12
+
+
+
+
+
+Program 11
+
+Implement Quick Sort Algorithm
+
+Aim: Write a C program to sort an array of integers using the Quick Sort algorithm.
+
+Algorithm:
+1.	Start the process.
+2.	Read the total number of elements (n) from the user.
+3.	Input the array elements.
+4.	Select the first element as the pivot.
+5.	Partition the array such that elements smaller than the pivot are on the left and larger on the right.
+6.	Recursively apply Quick Sort to the left and right subarrays.
+7.	Display the sorted array.
+8.	Stop the process.
+
+Program:
+#include<stdio.h>
+
+int partition(int a[], int low, int high) {
+    int pivot = a[low];
+    int i = low + 1, j = high;
+
+    while (1) {
+        while (i <= high && a[i] <= pivot) i++;
+        while (a[j] > pivot) j--;
+        if (i >= j) break;
+
+        int temp = a[i];
+        a[i] = a[j];
+        a[j] = temp;
+    }
+
+    int temp = a[low];
+    a[low] = a[j];
+    a[j] = temp;
+    return j;
+}
+
+void quicksort(int a[], int low, int high) {
+    if (low < high) {
+        int p = partition(a, low, high);
+        quicksort(a, low, p - 1);
+        quicksort(a, p + 1, high);
+    }
+}
+
+int main() {
+    int n;
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
+
+    int arr[n];
+    printf("Enter elements: ");
+    for (int i = 0; i < n; i++) scanf("%d", &arr[i]);
+
+    printf("Unsorted Array: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\n");
+
+    quicksort(arr, 0, n - 1);
+
+    printf("Sorted Array: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\n");
+
+    return 0;
+}
+
+Output:
+Enter number of elements: 6
+Enter elements: 12 5 7 1 9 3
+Unsorted Array: 12 5 7 1 9 3
+Sorted Array: 1 3 5 7 9 12
+
+
+
+
+Program 12
+
+Implement Heap Sort Algorithm
+
+Aim: Write a C program to sort an array using Heap Sort.
+
+Algorithm:
+1.	Start the process.
+2.	Read the total number of elements (n) from the user.
+3.	Input the array elements.
+4.	Build a max heap from the array.
+5.	Swap the root (largest element) with the last element and reduce heap size by 1.
+6.	Heapify the root element again.
+7.	Repeat steps 5–6 until the heap size becomes 1.
+8.	Display the sorted array.
+9.	Stop the process.
+
+Program:
+#include <stdio.h>
+
+// Function to heapify a subtree rooted at node i
+void heapify(int arr[], int n, int i) {
+    int largest = i;      // Initialize largest as root
+    int left = 2 * i + 1; // Left child index
+    int right = 2 * i + 2; // Right child index
+
+    // If left child is larger than root
+    if (left < n && arr[left] > arr[largest])
+        largest = left;
+
+    // If right child is larger than largest so far
+    if (right < n && arr[right] > arr[largest])
+        largest = right;
+
+    // If largest is not root
+    if (largest != i) {
+        int temp = arr[i];
+        arr[i] = arr[largest];
+        arr[largest] = temp;
+
+        // Recursively heapify the affected subtree
+        heapify(arr, n, largest);
+    }
+}
+
+// Main function to perform heap sort
+void heapSort(int arr[], int n) {
+    // Build max heap
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(arr, n, i);
+
+    // Extract elements from heap one by one
+    for (int i = n - 1; i > 0; i--) {
+        int temp = arr[0];
+        arr[0] = arr[i];
+        arr[i] = temp;
+
+        // Heapify the reduced heap
+        heapify(arr, i, 0);
+    }
+}
+
+// Utility function to print array
+void printArray(int arr[], int n) {
+    for (int i = 0; i < n; i++)
+        printf("%d ", arr[i]);
+    printf("\n");
+}
+
+// Driver program
+int main() {
+    int n;
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
+
+    int arr[n];
+    printf("Enter %d elements:\n", n);
+    for (int i = 0; i < n; i++)
+        scanf("%d", &arr[i]);
+
+    printf("Original array: ");
+    printArray(arr, n);
+
+    heapSort(arr, n);
+
+    printf("Sorted array: ");
+    printArray(arr, n);
+
+    return 0;
+}
+Output:
+Enter number of elements: 6
+Enter 6 elements:
+45 23 67 12 89 5
+Original array: 45 23 67 12 89 5
+Sorted array: 5 12 23 45 67 89
+
+
+Program 13
+
+Program: Finding Adjacent Node in C
+
+Aim: To find the adjacent and non-adjacent nodes of a given root node using an adjacency matrix.
+
+Algorithm:
+1.	Read the number of nodes (n).
+2.	Input the adjacency matrix of the graph.
+3.	Read the root node for which adjacent nodes are to be found.
+4.	For each node, check:
+o	If a[root][i] == 1 || a[i][root] == 1, it is adjacent.
+o	If a[root][i] == 0 && a[i][root] == 0 && i != root, it is non-adjacent.
+5.	Print the adjacent and non-adjacent nodes.
+6.	Stop.
+
+Program:
+#include <stdio.h>
+
+int a[10][10], n;
+
+void adj(int k) {
+    int i;
+
+    printf("Adjacent nodes of root node %d:\n", k);
+    for (i = 1; i <= n; i++) {
+        if (a[k][i] == 1 || a[i][k] == 1) {
+            printf("%d\t", i);
+        }
+    }
+    printf("\n");
+
+    printf("Non-adjacent nodes of root node %d:\n", k);
+    for (i = 1; i <= n; i++) {
+        if (a[k][i] == 0 && a[i][k] == 0 && i != k) {
+            printf("%d\t", i);
+        }
+    }
+    printf("\n");
+}
+
+int main() {
+    int i, j, root;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix:\n");
+    for (i = 1; i <= n; i++) {
+        for (j = 1; j <= n; j++) {
+            printf("Enter connection from %d --> %d: ", i, j);
+            scanf("%d", &a[i][j]);
+        }
+    }
+
+    printf("Enter root node: ");
+    scanf("%d", &root);
+
+    adj(root);
+
+    return 0;
+}
+
+Output:
+Enter number of nodes: 5
+Enter adjacency matrix:
+Enter connection from 1 --> 1: 0
+Enter connection from 1 --> 2: 1
+Enter connection from 1 --> 3: 1
+Enter connection from 1 --> 4: 0
+Enter connection from 1 --> 5: 0
+Enter connection from 2 --> 1: 1
+Enter connection from 2 --> 2: 0
+Enter connection from 2 --> 3: 0
+Enter connection from 2 --> 4: 1
+Enter connection from 2 --> 5: 1
+Enter connection from 3 --> 1: 1
+Enter connection from 3 --> 2: 0
+Enter connection from 3 --> 3: 0
+Enter connection from 3 --> 4: 0
+Enter connection from 3 --> 5: 0
+Enter connection from 4 --> 1: 0
+Enter connection from 4 --> 2: 1
+Enter connection from 4 --> 3: 0
+Enter connection from 4 --> 4: 0
+Enter connection from 4 --> 5: 0
+Enter connection from 5 --> 1: 0
+Enter connection from 5 --> 2: 1
+Enter connection from 5 --> 3: 0
+Enter connection from 5 --> 4: 0
+Enter connection from 5 --> 5: 0
+Enter root node: 2
+
+Adjacent nodes of root node 2:
+1    4    5    
+Non-adjacent nodes of root node 2:
+3
+
+
+
+Program 14
+
+Congestion Control using Leaky Bucket Algorithm
+
+Aim: To simulate congestion control in a network using the Leaky Bucket algorithm.
+
+Algorithm:
+1.	Initialize the bucket size and output rate.
+2.	Generate random packet sizes.
+3.	For each incoming packet:
+o	If packet size > bucket capacity → reject packet.
+o	Else → add packet to bucket.
+4.	Transmit data from the bucket at the specified output rate.
+5.	Update remaining data in the bucket after each transmission.
+6.	Repeat until all packets are processed.
+
+
+Program:
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#define NUM_PACKETS 10
+
+int get_random(int max_value) {
+    int result = (random() % 10) % max_value;
+    return result == 0 ? 1 : result;
+}
+
+int main() {
+    int packet_size[NUM_PACKETS];
+    int i, clock_tick, bucket_size, output_rate;
+    int remaining_data = 0, transmission_time, transmitted;
+
+    // Generate random packet sizes
+    for (i = 0; i < NUM_PACKETS; ++i)
+        packet_size[i] = get_random(6) * 10;
+
+    printf("Packet sizes generated:\n");
+    for (i = 0; i < NUM_PACKETS; ++i)
+        printf("Packet[%d]: %d bytes\n", i + 1, packet_size[i]);
+
+    printf("\nEnter the Output Rate (bytes/unit time): ");
+    scanf("%d", &output_rate);
+    printf("Enter the Bucket Size (bytes): ");
+    scanf("%d", &bucket_size);
+
+    for (i = 0; i < NUM_PACKETS; ++i) {
+        if ((packet_size[i] + remaining_data) > bucket_size) {
+            printf("\nIncoming Packet[%d] size (%d bytes) exceeds bucket capacity (%d bytes) - PACKET REJECTED!", 
+                    i + 1, packet_size[i], bucket_size);
+        } else {
+            remaining_data += packet_size[i];
+            printf("\n\nIncoming Packet[%d] size: %d bytes", i + 1, packet_size[i]);
+            printf("\nTotal bytes to transmit (in bucket): %d", remaining_data);
+            
+            transmission_time = get_random(4) * 10;
+            printf("\nEstimated transmission time: %d units\n", transmission_time);
+
+            for (clock_tick = 10; clock_tick <= transmission_time; clock_tick += 10) {
+                sleep(1);
+                if (remaining_data > 0) {
+                    transmitted = (remaining_data <= output_rate) ? remaining_data : output_rate;
+                    remaining_data -= transmitted;
+                    printf("Transmitted %d bytes ---- Remaining in bucket: %d bytes\n", transmitted, remaining_data);
+                } else {
+                    printf("No data to transmit at time unit %d!\n", clock_tick);
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+Output:
+Packet[1]: 30 bytes
+Packet[2]: 10 bytes
+Packet[3]: 10 bytes
+Packet[4]: 50 bytes
+Packet[5]: 30 bytes
+Packet[6]: 50 bytes
+Packet[7]: 10 bytes
+Packet[8]: 20 bytes
+Packet[9]: 30 bytes
+Packet[10]: 10 bytes
+Output Rate: 10
+Bucket Size: 15
+
+Incoming Packet[1] size (30 bytes) exceeds bucket capacity (15 bytes) - PACKET REJECTED!
+
+Incoming Packet[2] size: 10 bytes
+Total bytes to transmit (in bucket): 10
+Estimated transmission time: 20 units
+Transmitted 10 bytes ---- Remaining in bucket: 0 bytes
+No data to transmit at time unit 20!
+
+Incoming Packet[3] size: 10 bytes
+Total bytes to transmit (in bucket): 10
+Estimated transmission time: 30 units
+Transmitted 10 bytes ---- Remaining in bucket: 0 bytes
+No data to transmit at time unit 20!
+No data to transmit at time unit 30!
+
+Incoming Packet[4] size (50 bytes) exceeds bucket capacity (15 bytes) - PACKET REJECTED!
